@@ -15,10 +15,12 @@ Designed for both human use and AI agent consumption — outputs structured JSON
 ## Install
 
 ```bash
-npm install -g omnifocus-cli
+git clone git@github.com:tizzo/omnifocus-cli.git
+cd omnifocus-cli
+npm install
 ```
 
-Or run directly during development:
+Then run commands with:
 
 ```bash
 npx tsx src/index.ts <command>
