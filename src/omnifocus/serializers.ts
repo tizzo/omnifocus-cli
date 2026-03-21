@@ -6,9 +6,9 @@
  */
 
 export const TASK_SERIALIZER: string = `
+var _tsMap = [[Task.Status.Available,"Available"],[Task.Status.Blocked,"Blocked"],[Task.Status.Completed,"Completed"],[Task.Status.Dropped,"Dropped"],[Task.Status.DueSoon,"DueSoon"],[Task.Status.Next,"Next"],[Task.Status.Overdue,"Overdue"]];
 function taskStatusName(s) {
-  var map = [[Task.Status.Available,"Available"],[Task.Status.Blocked,"Blocked"],[Task.Status.Completed,"Completed"],[Task.Status.Dropped,"Dropped"],[Task.Status.DueSoon,"DueSoon"],[Task.Status.Next,"Next"],[Task.Status.Overdue,"Overdue"]];
-  for (var i = 0; i < map.length; i++) { if (s === map[i][0]) return map[i][1]; }
+  for (var i = 0; i < _tsMap.length; i++) { if (s === _tsMap[i][0]) return _tsMap[i][1]; }
   return "Unknown";
 }
 function serializeTask(t) {
@@ -34,18 +34,20 @@ function serializeTask(t) {
 `;
 
 export const PROJECT_SERIALIZER: string = `
+var _psMap = [[Project.Status.Active,"Active"],[Project.Status.Done,"Done"],[Project.Status.Dropped,"Dropped"],[Project.Status.OnHold,"OnHold"]];
 function projectStatusName(s) {
-  var map = [[Project.Status.Active,"Active"],[Project.Status.Done,"Done"],[Project.Status.Dropped,"Dropped"],[Project.Status.OnHold,"OnHold"]];
-  for (var i = 0; i < map.length; i++) { if (s === map[i][0]) return map[i][1]; }
+  for (var i = 0; i < _psMap.length; i++) { if (s === _psMap[i][0]) return _psMap[i][1]; }
   return "Unknown";
 }
 function serializeProject(p) {
+  var _tasks = p.flattenedTasks; var _remaining = 0;
+  for (var _i = 0; _i < _tasks.length; _i++) { if (!_tasks[_i].completed) _remaining++; }
   return {
     id: p.id.primaryKey,
     name: p.name,
     status: projectStatusName(p.status),
-    taskCount: p.flattenedTasks.length,
-    remainingTaskCount: p.flattenedTasks.filter(function(t) { return !t.completed; }).length,
+    taskCount: _tasks.length,
+    remainingTaskCount: _remaining,
     dueDate: p.dueDate ? p.dueDate.toISOString() : null,
     deferDate: p.deferDate ? p.deferDate.toISOString() : null,
     completed: p.completed,
@@ -58,9 +60,9 @@ function serializeProject(p) {
 `;
 
 export const TAG_SERIALIZER: string = `
+var _tgMap = [[Tag.Status.Active,"Active"],[Tag.Status.Dropped,"Dropped"],[Tag.Status.OnHold,"OnHold"]];
 function tagStatusName(s) {
-  var map = [[Tag.Status.Active,"Active"],[Tag.Status.Dropped,"Dropped"],[Tag.Status.OnHold,"OnHold"]];
-  for (var i = 0; i < map.length; i++) { if (s === map[i][0]) return map[i][1]; }
+  for (var i = 0; i < _tgMap.length; i++) { if (s === _tgMap[i][0]) return _tgMap[i][1]; }
   return "Unknown";
 }
 function serializeTag(tag, includeChildren) {

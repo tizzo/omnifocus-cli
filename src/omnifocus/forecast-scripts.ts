@@ -7,13 +7,17 @@ var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 var todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 var soonEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
 
-var allTasks = flattenedTasks.filter(function(t) { return !t.completed && t.taskStatus !== Task.Status.Dropped; });
-
-var overdue = allTasks.filter(function(t) { return t.taskStatus === Task.Status.Overdue; });
-var dueToday = allTasks.filter(function(t) { return t.dueDate && t.dueDate >= todayStart && t.dueDate < todayEnd && t.taskStatus !== Task.Status.Overdue; });
-var dueSoon = allTasks.filter(function(t) { return t.dueDate && t.dueDate >= todayEnd && t.dueDate < soonEnd; });
-var flaggedTasks = allTasks.filter(function(t) { return t.flagged && !t.dueDate; });
-var deferred = allTasks.filter(function(t) { return t.effectiveDeferDate && t.effectiveDeferDate <= todayEnd && t.effectiveDeferDate >= todayStart; });
+var overdue = [], dueToday = [], dueSoon = [], flaggedTasks = [], deferred = [];
+var allTasks = flattenedTasks;
+for (var i = 0; i < allTasks.length; i++) {
+  var t = allTasks[i];
+  if (t.completed || t.taskStatus === Task.Status.Dropped) continue;
+  if (t.taskStatus === Task.Status.Overdue) { overdue.push(t); }
+  else if (t.dueDate && t.dueDate >= todayStart && t.dueDate < todayEnd) { dueToday.push(t); }
+  else if (t.dueDate && t.dueDate >= todayEnd && t.dueDate < soonEnd) { dueSoon.push(t); }
+  if (t.flagged && !t.dueDate) { flaggedTasks.push(t); }
+  if (t.effectiveDeferDate && t.effectiveDeferDate >= todayStart && t.effectiveDeferDate < todayEnd) { deferred.push(t); }
+}
 
 JSON.stringify({
   overdue: overdue.map(function(t) { return serializeTask(t); }),

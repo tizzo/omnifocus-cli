@@ -1,4 +1,4 @@
-import { Command } from "commander";
+import { Command, Option } from "commander";
 import { OmniFocusBridge } from "../omnifocus/bridge.js";
 import { buildListTagsScript } from "../omnifocus/scripts.js";
 import {
@@ -8,7 +8,7 @@ import {
 } from "../omnifocus/tag-scripts.js";
 import { writeOutput } from "../output/formatter.js";
 import type { OutputFormat } from "../types/cli.js";
-import type { TagSummary, TagListOptions } from "../types/omnifocus.js";
+import type { DeleteResult, TagSummary, TagListOptions, UpdateTagInput } from "../types/omnifocus.js";
 
 export function createTagsCommand(): Command {
   const tags = new Command("tags").description("Manage OmniFocus tags");
@@ -46,11 +46,7 @@ export function createTagsCommand(): Command {
       const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
       const bridge = new OmniFocusBridge();
       const script = buildDeleteTagScript(tag);
-      const result = await bridge.executeAndParse<{
-        deleted: boolean;
-        id: string;
-        name: string;
-      }>(script);
+      const result = await bridge.executeAndParse<DeleteResult>(script);
       writeOutput(result, globalOpts.format);
     });
 
@@ -58,23 +54,29 @@ export function createTagsCommand(): Command {
     .command("update <tag>")
     .description("Update a tag")
     .option("--name <name>", "Rename the tag")
-    .option("--status <status>", "Set tag status", undefined)
+    .addOption(
+      new Option("--status <status>", "Set tag status").choices([
+        "active",
+        "onhold",
+        "dropped",
+      ]),
+    )
     .action(
       async (
         tag: string,
         options: {
-          name: string | undefined;
-          status: string | undefined;
+          name?: string;
+          status?: "active" | "onhold" | "dropped";
         },
         command: Command,
       ) => {
         const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
+        const input: UpdateTagInput = {
+          name: options.name,
+          status: options.status,
+        };
         const bridge = new OmniFocusBridge();
-        const script = buildUpdateTagScript(
-          tag,
-          options.name,
-          options.status as "active" | "onhold" | "dropped" | undefined,
-        );
+        const script = buildUpdateTagScript(tag, input);
         const result = await bridge.executeAndParse<TagSummary>(script);
         writeOutput(result, globalOpts.format);
       },

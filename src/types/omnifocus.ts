@@ -101,9 +101,15 @@ export type PerspectiveSummary = {
   readonly isBuiltIn: boolean;
 };
 
-export type ForecastSection = {
-  readonly label: string;
-  readonly tasks: readonly TaskSummary[];
+export type FolderDetail = FolderSummary & {
+  readonly projects: readonly ProjectSummary[];
+  readonly subfolders: readonly FolderSummary[];
+};
+
+export type DeleteResult = {
+  readonly deleted: boolean;
+  readonly id: string;
+  readonly name: string;
 };
 
 export type ForecastResult = {
@@ -183,6 +189,11 @@ export type UpdateProjectInput = {
   readonly status?: "active" | "onhold" | "done" | "dropped" | undefined;
 };
 
+export type UpdateTagInput = {
+  readonly name?: string | undefined;
+  readonly status?: "active" | "onhold" | "dropped" | undefined;
+};
+
 // ---------------------------------------------------------------------------
 // Filter types
 // ---------------------------------------------------------------------------
@@ -194,7 +205,7 @@ export type TaskListFilters = {
   readonly status?: "available" | "completed" | "blocked" | "dropped" | "remaining" | undefined;
   readonly dueBefore?: string | undefined;
   readonly dueAfter?: string | undefined;
-  readonly sort?: "name" | "due" | "defer" | "flagged" | "added" | undefined;
+  readonly sort?: "name" | "due" | "defer" | "flagged" | undefined;
   readonly limit?: number | undefined;
   readonly countOnly?: boolean | undefined;
 };

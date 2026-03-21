@@ -87,7 +87,7 @@ export function buildCreateTaskScript(input: CreateTaskInput): string {
     for (const tag of input.tags) {
       const escapedTag = escapeOmniString(tag);
       lines.push(
-        `var foundTag = flattenedTags.byName('${escapedTag}'); if (foundTag) { task.addTag(foundTag); }`,
+        `var foundTag = flattenedTags.byName('${escapedTag}'); if (!foundTag) { throw new Error('Tag not found: ${escapedTag}'); } task.addTag(foundTag);`,
       );
     }
   }
@@ -95,7 +95,7 @@ export function buildCreateTaskScript(input: CreateTaskInput): string {
   if (input.project) {
     const escapedProject = escapeOmniString(input.project);
     lines.push(
-      `var targetProject = flattenedProjects.byName('${escapedProject}'); if (targetProject) { moveTasks([task], targetProject); }`,
+      `var targetProject = flattenedProjects.byName('${escapedProject}'); if (!targetProject) { throw new Error('Project not found: ${escapedProject}'); } moveTasks([task], targetProject);`,
     );
   }
 

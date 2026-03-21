@@ -47,7 +47,8 @@ describe("buildForecastScript", () => {
 
   it("filters out completed and dropped tasks", () => {
     const script = buildForecastScript();
-    expect(script).toContain("!t.completed");
+    expect(script).toContain("t.completed");
     expect(script).toContain("Task.Status.Dropped");
+    expect(script).toContain("continue");
   });
 });

@@ -16,6 +16,7 @@ import type { OutputFormat } from "../types/cli.js";
 import type {
   TaskSummary,
   CreateTaskInput,
+  DeleteResult,
   TaskListFilters,
   UpdateTaskInput,
 } from "../types/omnifocus.js";
@@ -98,7 +99,11 @@ export function createTasksCommand(): Command {
         "flagged",
       ]),
     )
-    .option("-l, --limit <n>", "Limit number of results", parseInt)
+    .option("-l, --limit <n>", "Limit number of results", (v: string) => {
+      const n = Number(v);
+      if (!Number.isInteger(n) || n < 1) throw new Error("limit must be a positive integer");
+      return n;
+    })
     .option("--count", "Return count only instead of full task list")
     .action(
       async (
@@ -225,7 +230,7 @@ export function createTasksCommand(): Command {
       const bridge = new OmniFocusBridge();
       const script = buildDeleteTaskScript(id);
       const result =
-        await bridge.executeAndParse<{ deleted: boolean; id: string; name: string }>(script);
+        await bridge.executeAndParse<DeleteResult>(script);
       writeOutput(result, globalOpts.format);
     });
 

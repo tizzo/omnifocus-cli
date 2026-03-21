@@ -1,5 +1,6 @@
 import { TAG_SERIALIZER } from "./serializers.js";
 import { escapeOmniString } from "./scripts.js";
+import type { UpdateTagInput } from "../types/omnifocus.js";
 
 export function buildCreateTagScript(name: string): string {
   const escaped = escapeOmniString(name);
@@ -19,8 +20,7 @@ JSON.stringify({ deleted: true, id: '${escaped}', name: tagName });`;
 
 export function buildUpdateTagScript(
   nameOrId: string,
-  newName: string | undefined,
-  newStatus: "active" | "onhold" | "dropped" | undefined,
+  input: UpdateTagInput,
 ): string {
   const escaped = escapeOmniString(nameOrId);
   const lines: string[] = [
@@ -29,14 +29,14 @@ export function buildUpdateTagScript(
     `if (!tag) { throw new Error('Tag not found: ${escaped}'); }`,
   ];
 
-  if (newName !== undefined) {
-    lines.push(`tag.name = '${escapeOmniString(newName)}';`);
+  if (input.name !== undefined) {
+    lines.push(`tag.name = '${escapeOmniString(input.name)}';`);
   }
-  if (newStatus === "active") {
+  if (input.status === "active") {
     lines.push("tag.status = Tag.Status.Active;");
-  } else if (newStatus === "onhold") {
+  } else if (input.status === "onhold") {
     lines.push("tag.status = Tag.Status.OnHold;");
-  } else if (newStatus === "dropped") {
+  } else if (input.status === "dropped") {
     lines.push("tag.status = Tag.Status.Dropped;");
   }
 

@@ -16,6 +16,7 @@ import { writeOutput } from "../output/formatter.js";
 import type { OutputFormat } from "../types/cli.js";
 import type {
   CreateProjectInput,
+  DeleteResult,
   ProjectFilters,
   ProjectSummary,
   ProjectTaskOptions,
@@ -132,7 +133,7 @@ export function createProjectsCommand(): Command {
       const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
       const bridge = new OmniFocusBridge();
       const script = buildDeleteProjectScript(project);
-      const result = await bridge.executeAndParse<{ deleted: boolean; id: string; name: string }>(script);
+      const result = await bridge.executeAndParse<DeleteResult>(script);
       writeOutput(result, globalOpts.format);
     });
 

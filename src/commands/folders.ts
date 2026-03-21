@@ -6,7 +6,7 @@ import {
 } from "../omnifocus/folder-scripts.js";
 import { writeOutput } from "../output/formatter.js";
 import type { OutputFormat } from "../types/cli.js";
-import type { FolderSummary } from "../types/omnifocus.js";
+import type { FolderDetail, FolderSummary } from "../types/omnifocus.js";
 
 export function createFoldersCommand(): Command {
   const folders = new Command("folders").description(
@@ -32,7 +32,7 @@ export function createFoldersCommand(): Command {
       const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
       const bridge = new OmniFocusBridge();
       const script = buildViewFolderScript(folder);
-      const result = await bridge.executeAndParse<FolderSummary>(script);
+      const result = await bridge.executeAndParse<FolderDetail>(script);
       writeOutput(result, globalOpts.format);
     });
 

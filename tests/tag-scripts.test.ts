@@ -62,45 +62,45 @@ describe("buildDeleteTagScript", () => {
 });
 
 describe("buildUpdateTagScript", () => {
-  it("sets tag.name when newName is provided", () => {
-    const script = buildUpdateTagScript("Work", "Personal", undefined);
+  it("sets tag.name when name is provided", () => {
+    const script = buildUpdateTagScript("Work", { name: "Personal" });
     expect(script).toContain("tag.name = 'Personal'");
   });
 
   it("sets Tag.Status.Active when status is active", () => {
-    const script = buildUpdateTagScript("Work", undefined, "active");
+    const script = buildUpdateTagScript("Work", { status: "active" });
     expect(script).toContain("tag.status = Tag.Status.Active;");
   });
 
   it("sets Tag.Status.OnHold when status is onhold", () => {
-    const script = buildUpdateTagScript("Work", undefined, "onhold");
+    const script = buildUpdateTagScript("Work", { status: "onhold" });
     expect(script).toContain("tag.status = Tag.Status.OnHold;");
   });
 
   it("sets Tag.Status.Dropped when status is dropped", () => {
-    const script = buildUpdateTagScript("Work", undefined, "dropped");
+    const script = buildUpdateTagScript("Work", { status: "dropped" });
     expect(script).toContain("tag.status = Tag.Status.Dropped;");
   });
 
   it("sets both name and status", () => {
-    const script = buildUpdateTagScript("Work", "Renamed", "onhold");
+    const script = buildUpdateTagScript("Work", { name: "Renamed", status: "onhold" });
     expect(script).toContain("tag.name = 'Renamed'");
     expect(script).toContain("tag.status = Tag.Status.OnHold;");
   });
 
   it("escapes special characters in nameOrId", () => {
-    const script = buildUpdateTagScript("it's", undefined, undefined);
+    const script = buildUpdateTagScript("it's", {});
     expect(script).toContain("Tag.byIdentifier('it\\'s')");
     expect(script).toContain("flattenedTags.byName('it\\'s')");
   });
 
   it("escapes special characters in newName", () => {
-    const script = buildUpdateTagScript("Work", "it's new", undefined);
+    const script = buildUpdateTagScript("Work", { name: "it's new" });
     expect(script).toContain("tag.name = 'it\\'s new'");
   });
 
   it("contains serializeTag", () => {
-    const script = buildUpdateTagScript("Work", undefined, undefined);
+    const script = buildUpdateTagScript("Work", {});
     expect(script).toContain("serializeTag(tag, false)");
   });
 });

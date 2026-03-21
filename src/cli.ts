@@ -1,4 +1,4 @@
-import { Command } from "commander";
+import { Command, Option } from "commander";
 import { createInboxCommand } from "./commands/inbox.js";
 import { createProjectsCommand } from "./commands/projects.js";
 import { createTasksCommand } from "./commands/tasks.js";
@@ -15,7 +15,11 @@ program
   .name("omnifocus")
   .description("CLI for interacting with OmniFocus via Omni Automation")
   .version("0.1.0")
-  .option("--format <format>", "Output format (json or pretty)", "json");
+  .addOption(
+    new Option("--format <format>", "Output format")
+      .choices(["json", "pretty"])
+      .default("json"),
+  );
 
 program.addCommand(createInboxCommand());
 program.addCommand(createProjectsCommand());

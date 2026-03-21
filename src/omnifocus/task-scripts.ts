@@ -17,9 +17,8 @@ export function buildListTasksScript(filters: TaskListFilters): string {
     conditions.push("t.taskStatus === Task.Status.Blocked");
   } else if (filters.status === "dropped") {
     conditions.push("t.taskStatus === Task.Status.Dropped");
-  } else if (filters.status === "remaining") {
-    conditions.push("!t.completed && t.taskStatus !== Task.Status.Dropped");
   } else {
+    // Default and "remaining": active, non-dropped tasks
     conditions.push("!t.completed && t.taskStatus !== Task.Status.Dropped");
   }
 
@@ -129,14 +128,14 @@ export function buildUpdateTaskScript(
   } else if (input.project !== undefined) {
     const ep = escapeOmniString(input.project);
     lines.push(
-      `var targetProject = flattenedProjects.byName('${ep}'); if (targetProject) { moveTasks([task], targetProject); }`,
+      `var targetProject = flattenedProjects.byName('${ep}'); if (!targetProject) { throw new Error('Project not found: ${ep}'); } moveTasks([task], targetProject);`,
     );
   }
   if (input.addTags !== undefined) {
     for (const tag of input.addTags) {
       const et = escapeOmniString(tag);
       lines.push(
-        `var addTag = flattenedTags.byName('${et}'); if (addTag) { task.addTag(addTag); }`,
+        `var addTag = flattenedTags.byName('${et}'); if (!addTag) { throw new Error('Tag not found: ${et}'); } task.addTag(addTag);`,
       );
     }
   }
@@ -181,9 +180,9 @@ export function buildSearchScript(
   query: string,
   options: SearchOptions,
 ): string {
-  const escaped = escapeOmniString(query);
+  const escaped = escapeOmniString(query.toLowerCase());
   const conditions: string[] = [
-    `(t.name.toLowerCase().indexOf('${escaped}'.toLowerCase()) !== -1 || t.note.toLowerCase().indexOf('${escaped}'.toLowerCase()) !== -1)`,
+    `(t.name.toLowerCase().indexOf(_q) !== -1 || t.note.toLowerCase().indexOf(_q) !== -1)`,
   ];
 
   if (options.includeCompleted !== true) {
@@ -206,6 +205,7 @@ export function buildSearchScript(
     options.limit !== undefined ? `.slice(0, ${options.limit})` : "";
 
   return `${TASK_SERIALIZER}
+var _q = '${escaped}';
 var resultTasks = flattenedTasks.filter(function(t) { return ${conditions.join(" && ")}; })${limitExpr};
 JSON.stringify(resultTasks.map(function(t) { return serializeTask(t); }));`;
 }

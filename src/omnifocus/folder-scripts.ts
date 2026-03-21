@@ -1,6 +1,5 @@
-import { FOLDER_SERIALIZER } from "./serializers.js";
+import { FOLDER_SERIALIZER, PROJECT_SERIALIZER } from "./serializers.js";
 import { escapeOmniString } from "./scripts.js";
-import { PROJECT_SERIALIZER } from "./serializers.js";
 
 export function buildListFoldersScript(): string {
   return `${FOLDER_SERIALIZER}
