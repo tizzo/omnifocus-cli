@@ -26,3 +26,44 @@ program.addCommand(createSearchCommand());
 program.addCommand(createForecastCommand());
 program.addCommand(createPerspectivesCommand());
 program.addCommand(createStatsCommand());
+
+function collectHelp(cmd: Command, prefix: string): string[] {
+  const lines: string[] = [];
+  const name = prefix ? `${prefix} ${cmd.name()}` : cmd.name();
+  const desc = cmd.description();
+  const options = cmd.options
+    .map(
+      (o) =>
+        `    ${o.flags}${o.description ? "  " + o.description : ""}${o.defaultValue !== undefined && o.defaultValue !== false ? " (default: " + JSON.stringify(o.defaultValue) + ")" : ""}`,
+    )
+    .join("\n");
+  const args = cmd.registeredArguments
+    .map((a) => `    <${a.name()}>  ${a.description}`)
+    .join("\n");
+
+  if (desc || options || args) {
+    lines.push(`\n${name}${desc ? " — " + desc : ""}`);
+    if (args) lines.push(args);
+    if (options) lines.push(options);
+  }
+
+  for (const sub of cmd.commands) {
+    lines.push(...collectHelp(sub, name));
+  }
+  return lines;
+}
+
+program
+  .command("help-all")
+  .description("Show all commands and options (useful for AI agents)")
+  .action(() => {
+    const lines = [
+      "omnifocus — CLI for interacting with OmniFocus via Omni Automation",
+      "All commands output JSON by default. Use --format pretty for human-readable output.",
+      "",
+      "Global options:",
+      "  --format <json|pretty>  Output format (default: json)",
+      ...collectHelp(program, ""),
+    ];
+    process.stdout.write(lines.join("\n") + "\n");
+  });

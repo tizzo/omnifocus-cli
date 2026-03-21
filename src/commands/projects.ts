@@ -36,7 +36,7 @@ export function createProjectsCommand(): Command {
         .choices(["active", "onhold", "all"])
         .default("active"),
     )
-    .option("--folder <name>", "Filter by folder name")
+    .option("-f, --folder <name>", "Filter by folder name")
     .action(async (options: { status: string; folder?: string }, command: Command) => {
       const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
       const filters: ProjectFilters = {
@@ -52,7 +52,7 @@ export function createProjectsCommand(): Command {
 
   projects
     .command("tasks <project>")
-    .description("List tasks in a project")
+    .description("List tasks in a project (accepts name or ID)")
     .option("--completed", "Include completed tasks", false)
     .action(
       async (
@@ -74,9 +74,9 @@ export function createProjectsCommand(): Command {
   projects
     .command("create <name>")
     .description("Create a new project")
-    .option("--folder <name>", "Parent folder name")
-    .option("--note <text>", "Project note")
-    .option("--due <date>", "Due date")
+    .option("-f, --folder <name>", "Parent folder name")
+    .option("-n, --note <text>", "Project note")
+    .option("-d, --due <date>", "Due date")
     .option("--defer <date>", "Defer date")
     .option("--sequential", "Make project sequential", false)
     .addOption(
@@ -116,7 +116,7 @@ export function createProjectsCommand(): Command {
 
   projects
     .command("view <project>")
-    .description("View a single project's details")
+    .description("View a single project's details (accepts name or ID)")
     .action(async (project: string, _options: unknown, command: Command) => {
       const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
       const bridge = new OmniFocusBridge();
@@ -127,7 +127,7 @@ export function createProjectsCommand(): Command {
 
   projects
     .command("delete <project>")
-    .description("Delete a project")
+    .description("Delete a project (accepts name or ID)")
     .action(async (project: string, _options: unknown, command: Command) => {
       const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
       const bridge = new OmniFocusBridge();
@@ -138,7 +138,7 @@ export function createProjectsCommand(): Command {
 
   projects
     .command("update <project>")
-    .description("Update a project")
+    .description("Update a project (accepts name or ID)")
     .option("--name <name>", "New project name")
     .option("--note <text>", "Project note")
     .option("--due <date>", "Due date")
@@ -184,7 +184,7 @@ export function createProjectsCommand(): Command {
 
   projects
     .command("complete <project>")
-    .description("Mark a project as complete")
+    .description("Mark a project as complete (accepts name or ID)")
     .action(async (project: string, _options: unknown, command: Command) => {
       const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
       const bridge = new OmniFocusBridge();
@@ -195,7 +195,7 @@ export function createProjectsCommand(): Command {
 
   projects
     .command("uncomplete <project>")
-    .description("Reopen a completed project")
+    .description("Reopen a completed project (accepts name or ID)")
     .action(async (project: string, _options: unknown, command: Command) => {
       const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
       const bridge = new OmniFocusBridge();

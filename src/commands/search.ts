@@ -9,10 +9,10 @@ export function createSearchCommand(): Command {
   const search = new Command("search")
     .description("Search tasks by name or note")
     .argument("<query>", "Search query")
-    .option("--include-completed", "Include completed tasks")
-    .option("--project <name>", "Filter by project name")
-    .option("--tag <name>", "Filter by tag name")
-    .option("--limit <n>", "Limit number of results", parseInt)
+    .option("-c, --include-completed", "Include completed tasks")
+    .option("-p, --project <name>", "Filter by project name")
+    .option("-t, --tag <name>", "Filter by tag name")
+    .option("-l, --limit <n>", "Limit number of results", parseInt)
     .action(
       async (
         query: string,

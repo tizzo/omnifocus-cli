@@ -26,12 +26,12 @@ export function createTasksCommand(): Command {
   tasks
     .command("create <name>")
     .description("Create a new task")
-    .option("--project <name>", "Assign to project")
-    .option("--tag <name...>", "Add tags")
-    .option("--due <date>", "Due date")
+    .option("-p, --project <name>", "Assign to project")
+    .option("-t, --tag <name...>", "Add tags")
+    .option("-d, --due <date>", "Due date (ISO 8601 or natural, e.g. 2024-12-31)")
     .option("--defer <date>", "Defer date")
-    .option("--note <text>", "Task note")
-    .option("--flagged", "Flag the task")
+    .option("-n, --note <text>", "Task note")
+    .option("-f, --flagged", "Flag the task")
     .action(
       async (
         name: string,
@@ -76,9 +76,9 @@ export function createTasksCommand(): Command {
   tasks
     .command("list")
     .description("List tasks with filters")
-    .option("--flagged", "Only flagged tasks")
-    .option("--project <name>", "Filter by project name")
-    .option("--tag <name>", "Filter by tag name")
+    .option("-f, --flagged", "Only flagged tasks")
+    .option("-p, --project <name>", "Filter by project name")
+    .option("-t, --tag <name>", "Filter by tag name")
     .addOption(
       new Option("--status <status>", "Filter by status").choices([
         "available",
@@ -98,8 +98,8 @@ export function createTasksCommand(): Command {
         "flagged",
       ]),
     )
-    .option("--limit <n>", "Limit number of results", parseInt)
-    .option("--count", "Return count only")
+    .option("-l, --limit <n>", "Limit number of results", parseInt)
+    .option("--count", "Return count only instead of full task list")
     .action(
       async (
         options: {
@@ -153,15 +153,15 @@ export function createTasksCommand(): Command {
   tasks
     .command("update <id>")
     .description("Update a task")
-    .option("--name <name>", "New task name")
+    .option("-n, --name <name>", "New task name")
     .option("--note <text>", "New task note")
-    .option("--due <date>", "Set due date")
+    .option("-d, --due <date>", "Set due date")
     .option("--clear-due", "Clear due date")
     .option("--defer <date>", "Set defer date")
     .option("--clear-defer", "Clear defer date")
     .option("--flag", "Flag the task")
     .option("--unflag", "Unflag the task")
-    .option("--project <name>", "Move to project")
+    .option("-p, --project <name>", "Move to project (use --no-project for inbox)")
     .option("--no-project", "Move to inbox")
     .option(
       "--add-tag <name>",
@@ -232,7 +232,7 @@ export function createTasksCommand(): Command {
   tasks
     .command("move <id>")
     .description("Move a task to a project")
-    .requiredOption("--project <name>", "Target project name")
+    .requiredOption("-p, --project <name>", "Target project name")
     .action(
       async (
         id: string,
