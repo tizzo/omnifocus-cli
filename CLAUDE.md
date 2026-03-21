@@ -1,0 +1,64 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+A strictly-typed TypeScript CLI for managing OmniFocus tasks from the terminal. Designed for AI agent consumption (JSON output by default). Communicates with OmniFocus through macOS's built-in scripting: `osascript -l JavaScript` calls `evaluateJavascript()` inside OmniFocus. No third-party OmniFocus plugins — only macOS osascript + OmniFocus Pro's native Omni Automation API.
+
+## Commands
+
+```bash
+# Development (no build step)
+npx tsx src/index.ts inbox list
+npx tsx src/index.ts projects list --status active
+npx tsx src/index.ts tasks create "Buy milk" --project "Home" --tag "errands"
+
+# Build, test, lint
+npm run build                 # tsup → dist/index.js
+npm test                      # vitest run
+npm run test:coverage         # vitest with v8 coverage (80% thresholds)
+npm run test:watch            # vitest in watch mode
+npm run typecheck             # tsc --noEmit
+npm run lint                  # biome check src/
+npm run lint:fix              # biome check --write src/
+```
+
+## Architecture
+
+```
+CLI (commander)  →  Scripts (OmniJS builders)  →  Bridge (osascript)  →  OmniFocus
+```
+
+Three layers with strict separation:
+
+- **Commands** (`src/commands/`) — Thin CLI handlers. Parse args, call scripts to build OmniJS code, pass to bridge, format output. Each exports a `create*Command()` function.
+- **Scripts** (`src/omnifocus/scripts.ts`) — Pure functions that generate OmniJS JavaScript strings. Inject serializer helpers as preamble. `escapeOmniString()` for safe string embedding.
+- **Bridge** (`src/omnifocus/bridge.ts`) — `OmniFocusBridge` class. Two public methods: `executeOmniJS(code)` returns raw string, `executeAndParse<T>(code)` returns typed JSON. Uses `execFile` (not `exec`) to prevent shell injection.
+
+Supporting modules:
+- **Serializers** (`src/omnifocus/serializers.ts`) — String constants of JavaScript that run INSIDE OmniFocus (not Node). `TASK_SERIALIZER`, `PROJECT_SERIALIZER`, `TAG_SERIALIZER`. Use `function(){}` syntax for OmniFocus compatibility.
+- **Types** (`src/types/omnifocus.ts`) — All entity types (`TaskSummary`, `ProjectSummary`, `TagSummary`, etc.). All `readonly`. Dates as `string | null` (ISO 8601).
+- **Formatter** (`src/output/formatter.ts`) — JSON (default) and pretty-print output.
+- **Errors** (`src/errors.ts`) — `OmniFocusCliError` with typed error codes. Structured JSON to stderr.
+
+## Key Conventions
+
+- **No `any` types.** Strictest tsconfig: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`.
+- **ESM only.** `"type": "module"` with `.js` extensions in all imports.
+- **`import type`** for type-only imports (enforced by `verbatimModuleSyntax`).
+- **OmniJS code is JavaScript in string literals.** It runs inside OmniFocus, not Node. The serializers and script builders produce these strings. When modifying, keep the serializer output shape in sync with the TypeScript types in `src/types/omnifocus.ts`.
+- **`execFile` with args array**, never string interpolation into shell commands.
+- **Errors to stderr** as JSON `{ error: true, code: string, message: string }`. Only `src/index.ts` calls `process.exit`.
+
+## Testing
+
+Tests use vitest with mocked `child_process` (bridge tests) and mocked bridge/formatter (command tests). Script tests are pure (no mocking). Coverage thresholds: 80% lines/branches/functions/statements.
+
+## OmniFocus Automation Notes
+
+- Requires **OmniFocus Pro** (evaluateJavascript is Pro-only)
+- OmniFocus must be running when CLI is invoked
+- The bridge wraps OmniJS in JXA: `Application("OmniFocus").evaluateJavascript(code)` (on the app, not the document)
+- OmniJS runs in OmniFocus's JavaScriptCore context — different from Node.js. No `require`, no `import`, no Node APIs.
+- Project lookup uses dual strategy: `Project.byIdentifier(id)` then `flattenedProjects.byName(name)`
