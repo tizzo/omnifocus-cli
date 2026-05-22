@@ -194,6 +194,17 @@ export type UpdateTagInput = {
   readonly status?: "active" | "onhold" | "dropped" | undefined;
 };
 
+export type CreateFolderInput = {
+  readonly name: string;
+  readonly parent?: string | undefined;
+};
+
+export type UpdateFolderInput = {
+  readonly name?: string | undefined;
+  readonly status?: "active" | "dropped" | undefined;
+  readonly parent?: string | null | undefined;
+};
+
 // ---------------------------------------------------------------------------
 // Filter types
 // ---------------------------------------------------------------------------

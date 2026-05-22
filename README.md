@@ -87,6 +87,11 @@ omnifocus tags delete "Unused Tag"
 ```bash
 omnifocus folders list
 omnifocus folders view "Work"
+omnifocus folders create "New Folder" --parent "Work"
+omnifocus folders update "Old Name" --name "New Name" --status dropped
+omnifocus folders update "Sub" --parent "Work"
+omnifocus folders update "Sub" --clear-parent
+omnifocus folders delete "Unused Folder"
 ```
 
 ### Search
