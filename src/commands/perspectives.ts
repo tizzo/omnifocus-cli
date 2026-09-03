@@ -17,8 +17,7 @@ export function createPerspectivesCommand(): Command {
       const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
       const bridge = new OmniFocusBridge();
       const script = buildListPerspectivesScript();
-      const result =
-        await bridge.executeAndParse<PerspectiveSummary[]>(script);
+      const result = await bridge.executeAndParse<PerspectiveSummary[]>(script);
       writeOutput(result, globalOpts.format);
     });
 

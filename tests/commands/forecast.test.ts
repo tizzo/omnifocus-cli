@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Command } from "commander";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createForecastCommand } from "../../src/commands/forecast.js";
 
 const { mockExecuteAndParse, mockWriteOutput } = vi.hoisted(() => ({

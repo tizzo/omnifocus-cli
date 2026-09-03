@@ -1,6 +1,6 @@
-import { TAG_SERIALIZER } from "./serializers.js";
-import { escapeOmniString } from "./scripts.js";
 import type { UpdateTagInput } from "../types/omnifocus.js";
+import { escapeOmniString } from "./scripts.js";
+import { TAG_SERIALIZER } from "./serializers.js";
 
 export function buildCreateTagScript(name: string): string {
   const escaped = escapeOmniString(name);

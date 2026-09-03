@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { formatOutput, writeOutput } from "../src/output/formatter.js";
 
 describe("formatOutput", () => {
@@ -79,9 +79,7 @@ describe("writeOutput", () => {
       .mockImplementation(() => true);
     const data = [{ id: "1", name: "Test" }];
     writeOutput(data, "json");
-    expect(spy).toHaveBeenCalledWith(
-      formatOutput(data, "json") + "\n",
-    );
+    expect(spy).toHaveBeenCalledWith(formatOutput(data, "json") + "\n");
   });
 
   it("writes pretty format to stdout", () => {
@@ -90,8 +88,6 @@ describe("writeOutput", () => {
       .mockImplementation(() => true);
     const data = [{ id: "1", name: "Test", completed: false }];
     writeOutput(data, "pretty");
-    expect(spy).toHaveBeenCalledWith(
-      formatOutput(data, "pretty") + "\n",
-    );
+    expect(spy).toHaveBeenCalledWith(formatOutput(data, "pretty") + "\n");
   });
 });

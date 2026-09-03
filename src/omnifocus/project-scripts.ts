@@ -1,9 +1,9 @@
-import { PROJECT_SERIALIZER } from "./serializers.js";
-import { escapeOmniString } from "./scripts.js";
 import type {
   CreateProjectInput,
   UpdateProjectInput,
 } from "../types/omnifocus.js";
+import { escapeOmniString } from "./scripts.js";
+import { PROJECT_SERIALIZER } from "./serializers.js";
 
 export function buildViewProjectScript(projectNameOrId: string): string {
   const escaped = escapeOmniString(projectNameOrId);

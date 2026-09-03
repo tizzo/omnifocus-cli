@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { buildListPerspectivesScript } from "../src/omnifocus/perspective-scripts.js";
 
 describe("buildListPerspectivesScript", () => {

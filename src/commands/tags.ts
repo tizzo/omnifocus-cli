@@ -8,7 +8,12 @@ import {
 } from "../omnifocus/tag-scripts.js";
 import { writeOutput } from "../output/formatter.js";
 import type { OutputFormat } from "../types/cli.js";
-import type { DeleteResult, TagSummary, TagListOptions, UpdateTagInput } from "../types/omnifocus.js";
+import type {
+  DeleteResult,
+  TagListOptions,
+  TagSummary,
+  UpdateTagInput,
+} from "../types/omnifocus.js";
 
 export function createTagsCommand(): Command {
   const tags = new Command("tags").description("Manage OmniFocus tags");

@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  buildViewProjectScript,
+  buildCompleteProjectScript,
   buildCreateProjectScript,
   buildDeleteProjectScript,
-  buildUpdateProjectScript,
-  buildCompleteProjectScript,
   buildUncompleteProjectScript,
+  buildUpdateProjectScript,
+  buildViewProjectScript,
 } from "../src/omnifocus/project-scripts.js";
 
 describe("buildViewProjectScript", () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   buildCreateTagScript,
   buildDeleteTagScript,
@@ -83,7 +83,10 @@ describe("buildUpdateTagScript", () => {
   });
 
   it("sets both name and status", () => {
-    const script = buildUpdateTagScript("Work", { name: "Renamed", status: "onhold" });
+    const script = buildUpdateTagScript("Work", {
+      name: "Renamed",
+      status: "onhold",
+    });
     expect(script).toContain("tag.name = 'Renamed'");
     expect(script).toContain("tag.status = Tag.Status.OnHold;");
   });

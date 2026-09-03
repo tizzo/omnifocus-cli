@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Command } from "commander";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPerspectivesCommand } from "../../src/commands/perspectives.js";
 
 const { mockExecuteAndParse, mockWriteOutput } = vi.hoisted(() => ({
@@ -24,9 +24,7 @@ describe("perspectives command", () => {
   });
 
   it("perspectives list calls executeAndParse with perspectives script", async () => {
-    const mockPerspectives = [
-      { id: "inbox", name: "Inbox", isBuiltIn: true },
-    ];
+    const mockPerspectives = [{ id: "inbox", name: "Inbox", isBuiltIn: true }];
     mockExecuteAndParse.mockResolvedValue(mockPerspectives);
 
     const program = new Command();
@@ -42,9 +40,7 @@ describe("perspectives command", () => {
   });
 
   it("result is passed to writeOutput", async () => {
-    const mockPerspectives = [
-      { id: "inbox", name: "Inbox", isBuiltIn: true },
-    ];
+    const mockPerspectives = [{ id: "inbox", name: "Inbox", isBuiltIn: true }];
     mockExecuteAndParse.mockResolvedValue(mockPerspectives);
 
     const program = new Command();

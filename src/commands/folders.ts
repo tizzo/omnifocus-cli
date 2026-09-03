@@ -29,8 +29,7 @@ export function createFoldersCommand(): Command {
       const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
       const bridge = new OmniFocusBridge();
       const script = buildListFoldersScript();
-      const folderList =
-        await bridge.executeAndParse<FolderSummary[]>(script);
+      const folderList = await bridge.executeAndParse<FolderSummary[]>(script);
       writeOutput(folderList, globalOpts.format);
     });
 
@@ -50,11 +49,7 @@ export function createFoldersCommand(): Command {
     .description("Create a new folder")
     .option("-p, --parent <name>", "Parent folder name or ID")
     .action(
-      async (
-        name: string,
-        options: { parent?: string },
-        command: Command,
-      ) => {
+      async (name: string, options: { parent?: string }, command: Command) => {
         const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
         const input: CreateFolderInput = {
           name,

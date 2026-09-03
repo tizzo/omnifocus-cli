@@ -1,8 +1,5 @@
-import { describe, it, expect } from "vitest";
-import {
-  OmniFocusCliError,
-  formatErrorOutput,
-} from "../src/errors.js";
+import { describe, expect, it } from "vitest";
+import { formatErrorOutput, OmniFocusCliError } from "../src/errors.js";
 
 describe("OmniFocusCliError", () => {
   it("sets code, message, and name", () => {

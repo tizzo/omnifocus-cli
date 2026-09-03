@@ -1,17 +1,17 @@
 import { Command, Option } from "commander";
 import { OmniFocusBridge } from "../omnifocus/bridge.js";
 import {
+  buildCompleteProjectScript,
+  buildCreateProjectScript,
+  buildDeleteProjectScript,
+  buildUncompleteProjectScript,
+  buildUpdateProjectScript,
+  buildViewProjectScript,
+} from "../omnifocus/project-scripts.js";
+import {
   buildListProjectsScript,
   buildListProjectTasksScript,
 } from "../omnifocus/scripts.js";
-import {
-  buildCreateProjectScript,
-  buildViewProjectScript,
-  buildDeleteProjectScript,
-  buildUpdateProjectScript,
-  buildCompleteProjectScript,
-  buildUncompleteProjectScript,
-} from "../omnifocus/project-scripts.js";
 import { writeOutput } from "../output/formatter.js";
 import type { OutputFormat } from "../types/cli.js";
 import type {
@@ -38,18 +38,23 @@ export function createProjectsCommand(): Command {
         .default("active"),
     )
     .option("-f, --folder <name>", "Filter by folder name")
-    .action(async (options: { status: string; folder?: string }, command: Command) => {
-      const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
-      const filters: ProjectFilters = {
-        status: options.status as ProjectFilters["status"],
-        folder: options.folder,
-      };
-      const bridge = new OmniFocusBridge();
-      const script = buildListProjectsScript(filters);
-      const projectList =
-        await bridge.executeAndParse<ProjectSummary[]>(script);
-      writeOutput(projectList, globalOpts.format);
-    });
+    .action(
+      async (
+        options: { status: string; folder?: string },
+        command: Command,
+      ) => {
+        const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
+        const filters: ProjectFilters = {
+          status: options.status as ProjectFilters["status"],
+          folder: options.folder,
+        };
+        const bridge = new OmniFocusBridge();
+        const script = buildListProjectsScript(filters);
+        const projectList =
+          await bridge.executeAndParse<ProjectSummary[]>(script);
+        writeOutput(projectList, globalOpts.format);
+      },
+    );
 
   projects
     .command("tasks <project>")

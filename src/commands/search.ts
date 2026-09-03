@@ -3,7 +3,7 @@ import { OmniFocusBridge } from "../omnifocus/bridge.js";
 import { buildSearchScript } from "../omnifocus/task-scripts.js";
 import { writeOutput } from "../output/formatter.js";
 import type { OutputFormat } from "../types/cli.js";
-import type { TaskSummary, SearchOptions } from "../types/omnifocus.js";
+import type { SearchOptions, TaskSummary } from "../types/omnifocus.js";
 
 export function createSearchCommand(): Command {
   const search = new Command("search")
@@ -14,7 +14,8 @@ export function createSearchCommand(): Command {
     .option("-t, --tag <name>", "Filter by tag name")
     .option("-l, --limit <n>", "Limit number of results", (v: string) => {
       const n = Number(v);
-      if (!Number.isInteger(n) || n < 1) throw new Error("limit must be a positive integer");
+      if (!Number.isInteger(n) || n < 1)
+        throw new Error("limit must be a positive integer");
       return n;
     })
     .action(

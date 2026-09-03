@@ -1,13 +1,13 @@
 import { Command, Option } from "commander";
-import { createInboxCommand } from "./commands/inbox.js";
-import { createProjectsCommand } from "./commands/projects.js";
-import { createTasksCommand } from "./commands/tasks.js";
-import { createTagsCommand } from "./commands/tags.js";
 import { createFoldersCommand } from "./commands/folders.js";
-import { createSearchCommand } from "./commands/search.js";
 import { createForecastCommand } from "./commands/forecast.js";
+import { createInboxCommand } from "./commands/inbox.js";
 import { createPerspectivesCommand } from "./commands/perspectives.js";
+import { createProjectsCommand } from "./commands/projects.js";
+import { createSearchCommand } from "./commands/search.js";
 import { createStatsCommand } from "./commands/stats.js";
+import { createTagsCommand } from "./commands/tags.js";
+import { createTasksCommand } from "./commands/tasks.js";
 
 export const program = new Command();
 

@@ -19,8 +19,7 @@ export class OmniFocusBridge {
       );
       return stdout.trim();
     } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
 
       if (message.includes("not running")) {
         throw new OmniFocusCliError(

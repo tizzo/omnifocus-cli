@@ -1,9 +1,9 @@
-import { FOLDER_SERIALIZER, PROJECT_SERIALIZER } from "./serializers.js";
-import { escapeOmniString } from "./scripts.js";
 import type {
   CreateFolderInput,
   UpdateFolderInput,
 } from "../types/omnifocus.js";
+import { escapeOmniString } from "./scripts.js";
+import { FOLDER_SERIALIZER, PROJECT_SERIALIZER } from "./serializers.js";
 
 export function buildListFoldersScript(): string {
   return `${FOLDER_SERIALIZER}
