@@ -1,17 +1,18 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  escapeOmniString,
+  buildCompleteTaskScript,
+  buildCreateTaskScript,
   buildListInboxScript,
   buildListProjectsScript,
   buildListProjectTasksScript,
-  buildCreateTaskScript,
-  buildCompleteTaskScript,
   buildListTagsScript,
+  escapeOmniString,
 } from "../src/omnifocus/scripts.js";
 import {
-  TASK_SERIALIZER,
+  FOLDER_SERIALIZER,
   PROJECT_SERIALIZER,
   TAG_SERIALIZER,
+  TASK_SERIALIZER,
 } from "../src/omnifocus/serializers.js";
 
 describe("escapeOmniString", () => {
@@ -55,12 +56,57 @@ describe("buildListInboxScript", () => {
     expect(buildListInboxScript()).toContain("serializeTask");
   });
 
-  it("contains inbox.map", () => {
-    expect(buildListInboxScript()).toContain("inbox.map");
+  it("maps over the inbox", () => {
+    expect(buildListInboxScript()).toContain(
+      ".map(function(t) { return serializeTask(t); })",
+    );
   });
 
   it("contains JSON.stringify", () => {
     expect(buildListInboxScript()).toContain("JSON.stringify");
+  });
+
+  it("defaults to remaining: excludes completed and dropped", () => {
+    const script = buildListInboxScript();
+    expect(script).toContain(
+      "!t.completed && t.taskStatus !== Task.Status.Dropped",
+    );
+  });
+
+  it("explicit remaining matches the default", () => {
+    expect(buildListInboxScript("remaining")).toBe(buildListInboxScript());
+  });
+
+  it("available filters on Task.Status.Available", () => {
+    expect(buildListInboxScript("available")).toContain(
+      "t.taskStatus === Task.Status.Available",
+    );
+  });
+
+  it("completed filters on t.completed", () => {
+    const script = buildListInboxScript("completed");
+    expect(script).toContain("return t.completed;");
+    expect(script).not.toContain("!t.completed");
+  });
+
+  it("blocked filters on Task.Status.Blocked", () => {
+    expect(buildListInboxScript("blocked")).toContain(
+      "t.taskStatus === Task.Status.Blocked",
+    );
+  });
+
+  it("dropped filters on Task.Status.Dropped", () => {
+    expect(buildListInboxScript("dropped")).toContain(
+      "return t.taskStatus === Task.Status.Dropped;",
+    );
+  });
+
+  it("all applies no filter at all", () => {
+    const script = buildListInboxScript("all");
+    expect(script).not.toContain(".filter(");
+    expect(script).toContain(
+      "inbox.map(function(t) { return serializeTask(t); })",
+    );
   });
 });
 
@@ -254,5 +300,133 @@ describe("serializer constants", () => {
 
   it("TAG_SERIALIZER contains function serializeTag", () => {
     expect(TAG_SERIALIZER).toContain("function serializeTag");
+  });
+
+  it("TASK_SERIALIZER emits added/modified/dropDate as ISO strings", () => {
+    expect(TASK_SERIALIZER).toContain(
+      "added: t.added ? t.added.toISOString() : null",
+    );
+    expect(TASK_SERIALIZER).toContain(
+      "modified: t.modified ? t.modified.toISOString() : null",
+    );
+    expect(TASK_SERIALIZER).toContain(
+      "dropDate: t.dropDate ? t.dropDate.toISOString() : null",
+    );
+  });
+
+  it("PROJECT_SERIALIZER reads added/modified from the project's root task", () => {
+    // Project itself exposes no added/modified; p.task carries them.
+    expect(PROJECT_SERIALIZER).toContain("var _root = p.task;");
+    expect(PROJECT_SERIALIZER).toContain(
+      "added: _root && _root.added ? _root.added.toISOString() : null",
+    );
+    expect(PROJECT_SERIALIZER).toContain(
+      "modified: _root && _root.modified ? _root.modified.toISOString() : null",
+    );
+  });
+
+  it("PROJECT_SERIALIZER emits review dates", () => {
+    expect(PROJECT_SERIALIZER).toContain("lastReviewDate:");
+    expect(PROJECT_SERIALIZER).toContain("nextReviewDate:");
+  });
+
+  it("TAG_SERIALIZER emits added/modified", () => {
+    expect(TAG_SERIALIZER).toContain(
+      "added: tag.added ? tag.added.toISOString() : null",
+    );
+    expect(TAG_SERIALIZER).toContain(
+      "modified: tag.modified ? tag.modified.toISOString() : null",
+    );
+  });
+
+  it("FOLDER_SERIALIZER emits added/modified", () => {
+    expect(FOLDER_SERIALIZER).toContain(
+      "added: f.added ? f.added.toISOString() : null",
+    );
+    expect(FOLDER_SERIALIZER).toContain(
+      "modified: f.modified ? f.modified.toISOString() : null",
+    );
+  });
+
+  it("TASK_SERIALIZER derives url from the id rather than the URL object", () => {
+    // Instantiating a URL per task is ~6x slower; the derived string is identical.
+    expect(TASK_SERIALIZER).toContain(
+      'return "omnifocus:///" + kind + "/" + obj.id.primaryKey;',
+    );
+    expect(TASK_SERIALIZER).toContain('url: objectURL("task", t)');
+    expect(TASK_SERIALIZER).not.toContain("url: t.url");
+  });
+
+  it("TASK_SERIALIZER emits parent and immediate children as refs", () => {
+    expect(TASK_SERIALIZER).toContain(
+      "parent: t.parent ? { id: t.parent.id.primaryKey, name: t.parent.name } : null",
+    );
+    expect(TASK_SERIALIZER).toContain(
+      "children: t.children.map(function(c) { return { id: c.id.primaryKey, name: c.name }; })",
+    );
+  });
+
+  it("TASK_SERIALIZER maps every repetition enum to a string name", () => {
+    expect(TASK_SERIALIZER).toContain("function serializeRepetitionRule");
+    expect(TASK_SERIALIZER).toContain("if (!r) return null;");
+    for (const member of ["None", "Fixed", "DeferUntilDate", "DueDate"]) {
+      expect(TASK_SERIALIZER).toContain(`Task.RepetitionMethod.${member}`);
+    }
+    for (const member of ["None", "Regularly", "FromCompletion"]) {
+      expect(TASK_SERIALIZER).toContain(
+        `Task.RepetitionScheduleType.${member}`,
+      );
+    }
+    for (const member of ["DeferDate", "PlannedDate", "DueDate"]) {
+      expect(TASK_SERIALIZER).toContain(`Task.AnchorDateKey.${member}`);
+    }
+    expect(TASK_SERIALIZER).toContain(
+      "catchUpAutomatically: r.catchUpAutomatically",
+    );
+  });
+
+  it("TASK_SERIALIZER emits attachment metadata but never the bytes", () => {
+    expect(TASK_SERIALIZER).toContain("function serializeAttachment");
+    expect(TASK_SERIALIZER).toContain(
+      "byteLength: a.contents ? a.contents.length : null",
+    );
+    // The Data blob itself must never be serialized into the JSON payload.
+    expect(TASK_SERIALIZER).not.toContain("toBase64");
+    expect(TASK_SERIALIZER).not.toContain("contents: a.contents");
+    for (const member of ["File", "Directory", "Link"]) {
+      expect(TASK_SERIALIZER).toContain(`FileWrapper.Type.${member}`);
+    }
+  });
+
+  it("TASK_SERIALIZER emits linkedFileURLs as plain strings", () => {
+    expect(TASK_SERIALIZER).toContain(
+      "linkedFileURLs: t.linkedFileURLs.map(function(u) { return u.string; })",
+    );
+  });
+
+  it("FOLDER_SERIALIZER emits url, active flags and direct + flattened counts", () => {
+    expect(FOLDER_SERIALIZER).toContain(
+      'url: "omnifocus:///folder/" + f.id.primaryKey',
+    );
+    expect(FOLDER_SERIALIZER).toContain("active: f.active");
+    expect(FOLDER_SERIALIZER).toContain("effectiveActive: f.effectiveActive");
+    expect(FOLDER_SERIALIZER).toContain("projectCount: f.projects.length");
+    expect(FOLDER_SERIALIZER).toContain("folderCount: f.folders.length");
+    expect(FOLDER_SERIALIZER).toContain("sectionCount: f.sections.length");
+    expect(FOLDER_SERIALIZER).toContain(
+      "flattenedProjectCount: f.flattenedProjects.length",
+    );
+    expect(FOLDER_SERIALIZER).toContain(
+      "flattenedFolderCount: f.flattenedFolders.length",
+    );
+    expect(FOLDER_SERIALIZER).toContain(
+      "flattenedSectionCount: f.flattenedSections.length",
+    );
+  });
+
+  it("FOLDER_SERIALIZER derives status from the Folder.Status enum", () => {
+    expect(FOLDER_SERIALIZER).toContain("Folder.Status.Active");
+    expect(FOLDER_SERIALIZER).toContain("Folder.Status.Dropped");
+    expect(FOLDER_SERIALIZER).toContain("status: folderStatusName(f.status)");
   });
 });

@@ -40,6 +40,11 @@ omnifocus tasks list --project "Work" --status available
 omnifocus tasks list --due-before 2024-12-31 --sort due
 omnifocus tasks list --tag "urgent" --count
 
+# Filter and sort by creation / modification time
+omnifocus tasks list --sort added --limit 10          # most recently captured
+omnifocus tasks list --added-after 2026-08-01
+omnifocus tasks list --modified-after 2026-08-25 --sort modified
+
 # Create a task
 omnifocus tasks create "Buy groceries" --project "Home" --tag "errands" --due 2024-12-31
 

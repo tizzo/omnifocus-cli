@@ -1,14 +1,14 @@
-import {
-  TASK_SERIALIZER,
-  PROJECT_SERIALIZER,
-  TAG_SERIALIZER,
-} from "./serializers.js";
 import type {
   CreateTaskInput,
   ProjectFilters,
   ProjectTaskOptions,
   TagListOptions,
 } from "../types/omnifocus.js";
+import {
+  PROJECT_SERIALIZER,
+  TAG_SERIALIZER,
+  TASK_SERIALIZER,
+} from "./serializers.js";
 
 export function escapeOmniString(value: string): string {
   return value
@@ -18,9 +18,31 @@ export function escapeOmniString(value: string): string {
     .replace(/\r/g, "\\r");
 }
 
-export function buildListInboxScript(): string {
+export function buildListInboxScript(
+  status?:
+    | "available"
+    | "completed"
+    | "blocked"
+    | "dropped"
+    | "remaining"
+    | "all",
+): string {
+  const effective = status ?? "remaining";
+  let conditions = "";
+  if (effective === "available") {
+    conditions = `.filter(function(t) { return t.taskStatus === Task.Status.Available; })`;
+  } else if (effective === "completed") {
+    conditions = `.filter(function(t) { return t.completed; })`;
+  } else if (effective === "blocked") {
+    conditions = `.filter(function(t) { return t.taskStatus === Task.Status.Blocked; })`;
+  } else if (effective === "dropped") {
+    conditions = `.filter(function(t) { return t.taskStatus === Task.Status.Dropped; })`;
+  } else if (effective === "remaining") {
+    conditions = `.filter(function(t) { return !t.completed && t.taskStatus !== Task.Status.Dropped; })`;
+  }
+  // "all" → no filter
   return `${TASK_SERIALIZER}
-JSON.stringify(inbox.map(function(t) { return serializeTask(t); }));`;
+JSON.stringify(inbox${conditions}.map(function(t) { return serializeTask(t); }));`;
 }
 
 export function buildListProjectsScript(filters: ProjectFilters): string {
@@ -72,11 +94,15 @@ export function buildCreateTaskScript(input: CreateTaskInput): string {
   }
 
   if (input.dueDate !== undefined) {
-    lines.push(`task.dueDate = new Date('${escapeOmniString(input.dueDate)}');`);
+    lines.push(
+      `task.dueDate = new Date('${escapeOmniString(input.dueDate)}');`,
+    );
   }
 
   if (input.deferDate !== undefined) {
-    lines.push(`task.deferDate = new Date('${escapeOmniString(input.deferDate)}');`);
+    lines.push(
+      `task.deferDate = new Date('${escapeOmniString(input.deferDate)}');`,
+    );
   }
 
   if (input.flagged !== undefined) {

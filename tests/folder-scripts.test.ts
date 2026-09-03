@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   buildCreateFolderScript,
   buildDeleteFolderScript,
@@ -83,7 +83,9 @@ describe("buildCreateFolderScript", () => {
 
   it("throws when parent is not found", () => {
     const script = buildCreateFolderScript({ name: "Sub", parent: "Missing" });
-    expect(script).toContain("throw new Error('Parent folder not found: Missing')");
+    expect(script).toContain(
+      "throw new Error('Parent folder not found: Missing')",
+    );
   });
 
   it("escapes special characters in name", () => {
@@ -167,13 +169,17 @@ describe("buildUpdateFolderScript", () => {
 
   it("throws when new parent is not found", () => {
     const script = buildUpdateFolderScript("Sub", { parent: "Missing" });
-    expect(script).toContain("throw new Error('Parent folder not found: Missing')");
+    expect(script).toContain(
+      "throw new Error('Parent folder not found: Missing')",
+    );
   });
 
   it("does not include status assignments when status is not provided", () => {
     const script = buildUpdateFolderScript("Work", { name: "Renamed" });
-    expect(script).not.toContain("Folder.Status.Active");
-    expect(script).not.toContain("Folder.Status.Dropped");
+    // Match the assignment specifically — the serializer preamble names the
+    // enum members in its status lookup table.
+    expect(script).not.toContain("folder.status = Folder.Status.Active;");
+    expect(script).not.toContain("folder.status = Folder.Status.Dropped;");
   });
 
   it("escapes special characters in nameOrId and newName", () => {

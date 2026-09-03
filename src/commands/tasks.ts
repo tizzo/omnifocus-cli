@@ -1,23 +1,23 @@
 import { Command, Option } from "commander";
 import { OmniFocusBridge } from "../omnifocus/bridge.js";
 import {
-  buildCreateTaskScript,
   buildCompleteTaskScript,
+  buildCreateTaskScript,
 } from "../omnifocus/scripts.js";
 import {
-  buildListTasksScript,
-  buildViewTaskScript,
-  buildUpdateTaskScript,
   buildDeleteTaskScript,
+  buildListTasksScript,
   buildMoveTaskScript,
+  buildUpdateTaskScript,
+  buildViewTaskScript,
 } from "../omnifocus/task-scripts.js";
 import { writeOutput } from "../output/formatter.js";
 import type { OutputFormat } from "../types/cli.js";
 import type {
-  TaskSummary,
   CreateTaskInput,
   DeleteResult,
   TaskListFilters,
+  TaskSummary,
   UpdateTaskInput,
 } from "../types/omnifocus.js";
 
@@ -29,7 +29,10 @@ export function createTasksCommand(): Command {
     .description("Create a new task")
     .option("-p, --project <name>", "Assign to project")
     .option("-t, --tag <name...>", "Add tags")
-    .option("-d, --due <date>", "Due date (ISO 8601 or natural, e.g. 2024-12-31)")
+    .option(
+      "-d, --due <date>",
+      "Due date (ISO 8601 or natural, e.g. 2024-12-31)",
+    )
     .option("--defer <date>", "Defer date")
     .option("-n, --note <text>", "Task note")
     .option("-f, --flagged", "Flag the task")
@@ -91,17 +94,24 @@ export function createTasksCommand(): Command {
     )
     .option("--due-before <date>", "Tasks due before date")
     .option("--due-after <date>", "Tasks due after date")
+    .option("--added-after <date>", "Tasks created on or after date")
+    .option("--added-before <date>", "Tasks created on or before date")
+    .option("--modified-after <date>", "Tasks last changed on or after date")
+    .option("--modified-before <date>", "Tasks last changed on or before date")
     .addOption(
       new Option("--sort <field>", "Sort by field").choices([
         "name",
         "due",
         "defer",
         "flagged",
+        "added",
+        "modified",
       ]),
     )
     .option("-l, --limit <n>", "Limit number of results", (v: string) => {
       const n = Number(v);
-      if (!Number.isInteger(n) || n < 1) throw new Error("limit must be a positive integer");
+      if (!Number.isInteger(n) || n < 1)
+        throw new Error("limit must be a positive integer");
       return n;
     })
     .option("--count", "Return count only instead of full task list")
@@ -111,10 +121,19 @@ export function createTasksCommand(): Command {
           flagged?: true;
           project?: string;
           tag?: string;
-          status?: "available" | "completed" | "blocked" | "dropped" | "remaining";
+          status?:
+            | "available"
+            | "completed"
+            | "blocked"
+            | "dropped"
+            | "remaining";
           dueBefore?: string;
           dueAfter?: string;
-          sort?: "name" | "due" | "defer" | "flagged";
+          addedAfter?: string;
+          addedBefore?: string;
+          modifiedAfter?: string;
+          modifiedBefore?: string;
+          sort?: "name" | "due" | "defer" | "flagged" | "added" | "modified";
           limit?: number;
           count?: true;
         },
@@ -128,6 +147,10 @@ export function createTasksCommand(): Command {
           status: options.status,
           dueBefore: options.dueBefore,
           dueAfter: options.dueAfter,
+          addedAfter: options.addedAfter,
+          addedBefore: options.addedBefore,
+          modifiedAfter: options.modifiedAfter,
+          modifiedBefore: options.modifiedBefore,
           sort: options.sort,
           limit: options.limit,
           countOnly: options.count,
@@ -135,7 +158,9 @@ export function createTasksCommand(): Command {
         const bridge = new OmniFocusBridge();
         const script = buildListTasksScript(filters);
         if (options.count) {
-          const result = await bridge.executeAndParse<{ count: number }>(script);
+          const result = await bridge.executeAndParse<{ count: number }>(
+            script,
+          );
           writeOutput(result, globalOpts.format);
         } else {
           const result = await bridge.executeAndParse<TaskSummary[]>(script);
@@ -166,7 +191,10 @@ export function createTasksCommand(): Command {
     .option("--clear-defer", "Clear defer date")
     .option("--flag", "Flag the task")
     .option("--unflag", "Unflag the task")
-    .option("-p, --project <name>", "Move to project (use --no-project for inbox)")
+    .option(
+      "-p, --project <name>",
+      "Move to project (use --no-project for inbox)",
+    )
     .option("--no-project", "Move to inbox")
     .option(
       "--add-tag <name>",
@@ -213,7 +241,8 @@ export function createTasksCommand(): Command {
           flagged: options.flag ? true : options.unflag ? false : undefined,
           project: options.project === false ? null : options.project,
           addTags: options.addTag.length > 0 ? options.addTag : undefined,
-          removeTags: options.removeTag.length > 0 ? options.removeTag : undefined,
+          removeTags:
+            options.removeTag.length > 0 ? options.removeTag : undefined,
         };
         const bridge = new OmniFocusBridge();
         const script = buildUpdateTaskScript(id, input);
@@ -229,8 +258,7 @@ export function createTasksCommand(): Command {
       const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
       const bridge = new OmniFocusBridge();
       const script = buildDeleteTaskScript(id);
-      const result =
-        await bridge.executeAndParse<DeleteResult>(script);
+      const result = await bridge.executeAndParse<DeleteResult>(script);
       writeOutput(result, globalOpts.format);
     });
 
@@ -239,11 +267,7 @@ export function createTasksCommand(): Command {
     .description("Move a task to a project")
     .requiredOption("-p, --project <name>", "Target project name")
     .action(
-      async (
-        id: string,
-        options: { project: string },
-        command: Command,
-      ) => {
+      async (id: string, options: { project: string }, command: Command) => {
         const globalOpts = command.optsWithGlobals<{ format: OutputFormat }>();
         const bridge = new OmniFocusBridge();
         const script = buildMoveTaskScript(id, options.project);

@@ -23,6 +23,44 @@ export type FolderRef = {
 };
 
 // ---------------------------------------------------------------------------
+// Repetition & attachments
+// ---------------------------------------------------------------------------
+
+export type RepetitionMethod =
+  | "None"
+  | "Fixed"
+  | "DeferUntilDate"
+  | "DueDate"
+  | "Unknown";
+
+export type RepetitionScheduleType =
+  | "None"
+  | "Regularly"
+  | "FromCompletion"
+  | "Unknown";
+
+export type AnchorDateKey = "DeferDate" | "PlannedDate" | "DueDate" | "Unknown";
+
+export type RepetitionRuleSummary = {
+  /** iCalendar RRULE fragment, e.g. "FREQ=WEEKLY;BYDAY=SU". */
+  readonly ruleString: string;
+  readonly method: RepetitionMethod;
+  readonly scheduleType: RepetitionScheduleType;
+  readonly anchorDateKey: AnchorDateKey;
+  readonly catchUpAutomatically: boolean;
+};
+
+export type AttachmentType = "File" | "Directory" | "Link" | "Unknown";
+
+/** Attachment metadata only — the file's bytes are never serialized. */
+export type AttachmentSummary = {
+  readonly filename: string | null;
+  readonly preferredFilename: string | null;
+  readonly type: AttachmentType;
+  readonly byteLength: number | null;
+};
+
+// ---------------------------------------------------------------------------
 // Status unions
 // ---------------------------------------------------------------------------
 
@@ -47,9 +85,16 @@ export type TaskSummary = {
   readonly id: string;
   readonly name: string;
   readonly note: string;
+  /** Deep link back into OmniFocus, e.g. `omnifocus:///task/abc123`. */
+  readonly url: string;
   readonly flagged: boolean;
   readonly completed: boolean;
   readonly completionDate: string | null;
+  readonly dropDate: string | null;
+  /** When the task was created. From OmniJS `Task.added`. */
+  readonly added: string | null;
+  /** When the task last changed. From OmniJS `Task.modified`. */
+  readonly modified: string | null;
   readonly dueDate: string | null;
   readonly deferDate: string | null;
   readonly effectiveDueDate: string | null;
@@ -58,6 +103,17 @@ export type TaskSummary = {
   readonly project: ProjectRef | null;
   readonly tags: readonly TagRef[];
   readonly hasChildren: boolean;
+  /**
+   * Immediate parent. For a task at the top level of a project this is the
+   * project's root task, which shares the project's id and name.
+   */
+  readonly parent: TaskRef | null;
+  /** Immediate subtasks only — not flattened. Empty when `hasChildren` is false. */
+  readonly children: readonly TaskRef[];
+  readonly repetitionRule: RepetitionRuleSummary | null;
+  readonly attachments: readonly AttachmentSummary[];
+  /** Linked file URLs as strings (typically `file://` paths). */
+  readonly linkedFileURLs: readonly string[];
   readonly estimatedMinutes: number | null;
   readonly inInbox: boolean;
 };
@@ -71,6 +127,14 @@ export type ProjectSummary = {
   readonly dueDate: string | null;
   readonly deferDate: string | null;
   readonly completed: boolean;
+  readonly completionDate: string | null;
+  readonly dropDate: string | null;
+  /** When the project was created. Read from the project's root task. */
+  readonly added: string | null;
+  /** When the project last changed. Read from the project's root task. */
+  readonly modified: string | null;
+  readonly lastReviewDate: string | null;
+  readonly nextReviewDate: string | null;
   readonly flagged: boolean;
   readonly sequential: boolean;
   readonly folder: FolderRef | null;
@@ -83,15 +147,33 @@ export type TagSummary = {
   readonly status: TagStatus;
   readonly taskCount: number;
   readonly availableTaskCount: number;
+  readonly added: string | null;
+  readonly modified: string | null;
   readonly children?: readonly TagSummary[] | undefined;
 };
+
+export type FolderStatus = "Active" | "Dropped" | "Unknown";
 
 export type FolderSummary = {
   readonly id: string;
   readonly name: string;
-  readonly status: "Active" | "Dropped";
+  /** Deep link back into OmniFocus, e.g. `omnifocus:///folder/abc123`. */
+  readonly url: string;
+  readonly status: FolderStatus;
+  readonly active: boolean;
+  /** False when this folder or any ancestor is dropped. */
+  readonly effectiveActive: boolean;
+  readonly added: string | null;
+  readonly modified: string | null;
+  /** Direct children only. */
   readonly projectCount: number;
   readonly folderCount: number;
+  /** Projects + subfolders directly inside this folder, in display order. */
+  readonly sectionCount: number;
+  /** Recursive counts, including everything in descendant folders. */
+  readonly flattenedProjectCount: number;
+  readonly flattenedFolderCount: number;
+  readonly flattenedSectionCount: number;
   readonly parent: FolderRef | null;
 };
 
@@ -213,10 +295,27 @@ export type TaskListFilters = {
   readonly flagged?: boolean | undefined;
   readonly project?: string | undefined;
   readonly tag?: string | undefined;
-  readonly status?: "available" | "completed" | "blocked" | "dropped" | "remaining" | undefined;
+  readonly status?:
+    | "available"
+    | "completed"
+    | "blocked"
+    | "dropped"
+    | "remaining"
+    | undefined;
   readonly dueBefore?: string | undefined;
   readonly dueAfter?: string | undefined;
-  readonly sort?: "name" | "due" | "defer" | "flagged" | undefined;
+  readonly addedAfter?: string | undefined;
+  readonly addedBefore?: string | undefined;
+  readonly modifiedAfter?: string | undefined;
+  readonly modifiedBefore?: string | undefined;
+  readonly sort?:
+    | "name"
+    | "due"
+    | "defer"
+    | "flagged"
+    | "added"
+    | "modified"
+    | undefined;
   readonly limit?: number | undefined;
   readonly countOnly?: boolean | undefined;
 };

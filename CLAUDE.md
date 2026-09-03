@@ -18,7 +18,7 @@ npx tsx src/index.ts search "budget" --limit 10
 
 # Build, test, lint
 npm run build                 # tsup → dist/index.js
-npm test                      # vitest run (256 tests)
+npm test                      # vitest run (297 tests)
 npm run test:coverage         # vitest with v8 coverage (80% thresholds)
 npm run test:watch            # vitest in watch mode
 npm run typecheck             # tsc --noEmit
@@ -53,6 +53,11 @@ Supporting modules:
 - **`execFile` with args array**, never string interpolation into shell commands.
 - **Errors to stderr** as JSON `{ error: true, code: string, message: string }`. Only `src/index.ts` calls `process.exit`.
 - **Tag/project references throw on not found.** Never silently skip — always error when a `--tag` or `--project` value doesn't match.
+- **Creation/modification timestamps come from the API, never SQLite.** Tasks, tags, and folders expose `added` / `modified` directly. `Project` does *not* — read them from its root task (`project.task.added`), which shares the project's identifier.
+- **`url` is derived from the id, not read from `obj.url`.** `omnifocus:///task/<id>` is byte-identical to `obj.url.string` (verified across the whole database) and ~6x cheaper — instantiating a `URL` per object dominates a full listing.
+- **Enum values are mapped to string names** via lookup tables in the serializer preamble (`Task.RepetitionMethod`, `Task.RepetitionScheduleType`, `Task.AnchorDateKey`, `FileWrapper.Type`, `Folder.Status`), each falling back to `"Unknown"`. Assertions that a builder omits an enum *assignment* must match the assignment (`folder.status = Folder.Status.Active;`), not the bare member name — the preamble's lookup tables mention every member.
+- **Attachments serialize metadata only** (`filename`, `preferredFilename`, `type`, `byteLength`). Never serialize `contents` — it is a binary `Data` blob.
+- **`task.parent` for a top-level project task is the project's root task**, which shares the project's id and name. `children` is immediate subtasks only, not flattened.
 
 ## Testing
 

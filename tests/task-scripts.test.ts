@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  buildListTasksScript,
-  buildViewTaskScript,
-  buildUpdateTaskScript,
   buildDeleteTaskScript,
+  buildListTasksScript,
   buildMoveTaskScript,
   buildSearchScript,
+  buildUpdateTaskScript,
+  buildViewTaskScript,
 } from "../src/omnifocus/task-scripts.js";
 
 describe("buildListTasksScript", () => {
@@ -23,6 +23,45 @@ describe("buildListTasksScript", () => {
   it("--project adds containingProject.name check", () => {
     const script = buildListTasksScript({ project: "Work" });
     expect(script).toContain("t.containingProject.name === 'Work'");
+  });
+
+  it("--added-after adds t.added lower-bound condition", () => {
+    const script = buildListTasksScript({ addedAfter: "2026-08-01" });
+    expect(script).toContain("t.added && t.added >= new Date('2026-08-01')");
+  });
+
+  it("--added-before adds t.added upper-bound condition", () => {
+    const script = buildListTasksScript({ addedBefore: "2026-08-01" });
+    expect(script).toContain("t.added && t.added <= new Date('2026-08-01')");
+  });
+
+  it("--modified-after adds t.modified lower-bound condition", () => {
+    const script = buildListTasksScript({ modifiedAfter: "2026-08-01" });
+    expect(script).toContain(
+      "t.modified && t.modified >= new Date('2026-08-01')",
+    );
+  });
+
+  it("--modified-before adds t.modified upper-bound condition", () => {
+    const script = buildListTasksScript({ modifiedBefore: "2026-08-01" });
+    expect(script).toContain(
+      "t.modified && t.modified <= new Date('2026-08-01')",
+    );
+  });
+
+  it("--sort added sorts newest-first on t.added", () => {
+    const script = buildListTasksScript({ sort: "added" });
+    expect(script).toContain("return b.added - a.added;");
+  });
+
+  it("--sort modified sorts newest-first on t.modified", () => {
+    const script = buildListTasksScript({ sort: "modified" });
+    expect(script).toContain("return b.modified - a.modified;");
+  });
+
+  it("escapes quotes in added/modified date filters", () => {
+    const script = buildListTasksScript({ addedAfter: "2026'01" });
+    expect(script).toContain("\\'");
   });
 
   it("--tag adds tags.some check", () => {

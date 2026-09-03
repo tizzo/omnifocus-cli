@@ -1,10 +1,10 @@
-import { TASK_SERIALIZER } from "./serializers.js";
-import { escapeOmniString } from "./scripts.js";
 import type {
+  SearchOptions,
   TaskListFilters,
   UpdateTaskInput,
-  SearchOptions,
 } from "../types/omnifocus.js";
+import { escapeOmniString } from "./scripts.js";
+import { TASK_SERIALIZER } from "./serializers.js";
 
 export function buildListTasksScript(filters: TaskListFilters): string {
   const conditions: string[] = [];
@@ -52,6 +52,30 @@ export function buildListTasksScript(filters: TaskListFilters): string {
     );
   }
 
+  if (filters.addedAfter !== undefined) {
+    conditions.push(
+      `t.added && t.added >= new Date('${escapeOmniString(filters.addedAfter)}')`,
+    );
+  }
+
+  if (filters.addedBefore !== undefined) {
+    conditions.push(
+      `t.added && t.added <= new Date('${escapeOmniString(filters.addedBefore)}')`,
+    );
+  }
+
+  if (filters.modifiedAfter !== undefined) {
+    conditions.push(
+      `t.modified && t.modified >= new Date('${escapeOmniString(filters.modifiedAfter)}')`,
+    );
+  }
+
+  if (filters.modifiedBefore !== undefined) {
+    conditions.push(
+      `t.modified && t.modified <= new Date('${escapeOmniString(filters.modifiedBefore)}')`,
+    );
+  }
+
   const filterExpr =
     conditions.length > 0
       ? `.filter(function(t) { return ${conditions.join(" && ")}; })`
@@ -66,6 +90,11 @@ export function buildListTasksScript(filters: TaskListFilters): string {
     sortExpr = `.sort(function(a, b) { if (!a.deferDate) return 1; if (!b.deferDate) return -1; return new Date(a.deferDate) - new Date(b.deferDate); })`;
   } else if (filters.sort === "flagged") {
     sortExpr = `.sort(function(a, b) { return (b.flagged ? 1 : 0) - (a.flagged ? 1 : 0); })`;
+  } else if (filters.sort === "added") {
+    // Newest first — the useful default when asking "what did I capture recently?"
+    sortExpr = `.sort(function(a, b) { if (!a.added) return 1; if (!b.added) return -1; return b.added - a.added; })`;
+  } else if (filters.sort === "modified") {
+    sortExpr = `.sort(function(a, b) { if (!a.modified) return 1; if (!b.modified) return -1; return b.modified - a.modified; })`;
   }
 
   const limitExpr =
