@@ -48,5 +48,5 @@ export function formatOutput(data: unknown, format: OutputFormat): string {
 }
 
 export function writeOutput(data: unknown, format: OutputFormat): void {
-  process.stdout.write(formatOutput(data, format) + "\n");
+  process.stdout.write(`${formatOutput(data, format)}\n`);
 }

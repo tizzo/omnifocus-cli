@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createInboxCommand } from "../../src/commands/inbox.js";
 
 const { mockExecuteAndParse, mockWriteOutput } = vi.hoisted(() => ({

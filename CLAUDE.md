@@ -18,7 +18,7 @@ npx tsx src/index.ts search "budget" --limit 10
 
 # Build, test, lint
 npm run build                 # tsup → dist/index.js
-npm test                      # vitest run (297 tests)
+npm test                      # vitest run (311 tests)
 npm run test:coverage         # vitest with v8 coverage (80% thresholds)
 npm run test:watch            # vitest in watch mode
 npm run typecheck             # tsc --noEmit
@@ -58,6 +58,7 @@ Supporting modules:
 - **Enum values are mapped to string names** via lookup tables in the serializer preamble (`Task.RepetitionMethod`, `Task.RepetitionScheduleType`, `Task.AnchorDateKey`, `FileWrapper.Type`, `Folder.Status`), each falling back to `"Unknown"`. Assertions that a builder omits an enum *assignment* must match the assignment (`folder.status = Folder.Status.Active;`), not the bare member name — the preamble's lookup tables mention every member.
 - **Attachments serialize metadata only** (`filename`, `preferredFilename`, `type`, `byteLength`). Never serialize `contents` — it is a binary `Data` blob.
 - **`task.parent` for a top-level project task is the project's root task**, which shares the project's id and name. `children` is immediate subtasks only, not flattened.
+- **Biome's `useLiteralKeys` is disabled** in `biome.json` because it directly contradicts tsconfig's `noPropertyAccessFromIndexSignature`: the rule demands `item.name`, TypeScript demands `item["name"]` (TS4111). TypeScript wins. Expect the same tension elsewhere — the non-null assertions in `tests/` (`mock.calls[0]![0]`) are required by `noUncheckedIndexedAccess` and trip Biome's `noNonNullAssertion`, which is why `npm run lint` scopes to `src/` only.
 
 ## Testing
 

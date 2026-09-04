@@ -79,7 +79,7 @@ describe("writeOutput", () => {
       .mockImplementation(() => true);
     const data = [{ id: "1", name: "Test" }];
     writeOutput(data, "json");
-    expect(spy).toHaveBeenCalledWith(formatOutput(data, "json") + "\n");
+    expect(spy).toHaveBeenCalledWith(`${formatOutput(data, "json")}\n`);
   });
 
   it("writes pretty format to stdout", () => {
@@ -88,6 +88,6 @@ describe("writeOutput", () => {
       .mockImplementation(() => true);
     const data = [{ id: "1", name: "Test", completed: false }];
     writeOutput(data, "pretty");
-    expect(spy).toHaveBeenCalledWith(formatOutput(data, "pretty") + "\n");
+    expect(spy).toHaveBeenCalledWith(`${formatOutput(data, "pretty")}\n`);
   });
 });
