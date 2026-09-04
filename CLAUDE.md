@@ -18,7 +18,7 @@ npx tsx src/index.ts search "budget" --limit 10
 
 # Build, test, lint
 npm run build                 # tsup → dist/index.js
-npm test                      # vitest run (311 tests)
+npm test                      # vitest run (321 tests)
 npm run test:coverage         # vitest with v8 coverage (80% thresholds)
 npm run test:watch            # vitest in watch mode
 npm run typecheck             # tsc --noEmit
@@ -52,6 +52,8 @@ Supporting modules:
 - **OmniJS code is JavaScript in string literals.** It runs inside OmniFocus, not Node. The serializers and script builders produce these strings. When modifying, keep the serializer output shape in sync with the TypeScript types in `src/types/omnifocus.ts`.
 - **`execFile` with args array**, never string interpolation into shell commands.
 - **Errors to stderr** as JSON `{ error: true, code: string, message: string }`. Only `src/index.ts` calls `process.exit`.
+- **The bridge classifies OmniJS failures into typed error codes.** OmniJS can only `throw new Error(...)`, so `bridge.ts` pattern-matches the message back onto `TASK_NOT_FOUND` / `PROJECT_NOT_FOUND` / `TAG_NOT_FOUND` / `FOLDER_NOT_FOUND` (the last also covers "Parent folder not found"). Anything unrecognized becomes `SCRIPT_EXECUTION_FAILED`. When adding a script that throws a new "X not found", add the matching code and pattern too.
+- **Read the real failure from `error.stderr`, never `error.message`.** A rejected `execFile` puts the entire generated script — often several KB — into `message`; the actual osascript error is on stderr. Classification also uses stderr so that script *contents* (a task note containing "not running") cannot false-match.
 - **Tag/project references throw on not found.** Never silently skip — always error when a `--tag` or `--project` value doesn't match.
 - **Creation/modification timestamps come from the API, never SQLite.** Tasks, tags, and folders expose `added` / `modified` directly. `Project` does *not* — read them from its root task (`project.task.added`), which shares the project's identifier.
 - **`url` is derived from the id, not read from `obj.url`.** `omnifocus:///task/<id>` is byte-identical to `obj.url.string` (verified across the whole database) and ~6x cheaper — instantiating a `URL` per object dominates a full listing.

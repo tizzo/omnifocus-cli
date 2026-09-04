@@ -4,6 +4,7 @@ export type ErrorCode =
   | "TASK_NOT_FOUND"
   | "PROJECT_NOT_FOUND"
   | "TAG_NOT_FOUND"
+  | "FOLDER_NOT_FOUND"
   | "SCRIPT_EXECUTION_FAILED"
   | "PARSE_FAILED"
   | "INVALID_INPUT"
